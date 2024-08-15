@@ -1,77 +1,88 @@
-import { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
-import 'react-toastify/dist/ReactToastify.css';
-import { toast } from "react-toastify";
-// import { useHistory } from 'react-router-dom';
+import { GoogleAuthProvider, createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut, updateProfile} from "firebase/auth";
+import { createContext, useEffect, useState } from "react";
+import PropTypes from 'prop-types';
+import { getAuth } from "firebase/auth";
+import { app } from "../firebase/firebase.config";
+
+
 
 export const AuthContext = createContext(null);
+const auth = getAuth(app);
 
 const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    // const history = useHistory();
-    console.log(user)
+
+
+    // Providers
+    const googleProvider = new GoogleAuthProvider();
+
+
+    // create User
+    const createUser = (email, password) => {
+        setLoading(true);
+        return createUserWithEmailAndPassword(auth, email, password)
+    }
+
+    // Login user
+    const login = (email, password) => {
+        setLoading(true);
+        return signInWithEmailAndPassword(auth, email, password);
+    }
+
+    // login with google
+    const loginWithGoogle = () => {
+        setLoading(true);
+        return signInWithPopup(auth, googleProvider);
+    }
+
+    // Update profile
+    const updateInformation = (userInformation, name, image) => {
+        return updateProfile(userInformation, {
+            displayName: name,
+            photoURL: image
+        })
+    }
+
+
+    // Log out
+    const logOut = () => {
+        setLoading(true);
+        signOut(auth)
+    }
+
+    // observer
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            axios.get('http://localhost:5000/auth', { headers: { Authorization: `Bearer ${token}` } })
-                .then(response => {
-                    setUser(response.data);
-                    setLoading(false);
-                })
-                .catch(() => {
-                    localStorage.removeItem('token');
-                    setLoading(false);
-                });
-        } else {
+        const unSubscribe = onAuthStateChanged(auth, currentUser => {
+            console.log(currentUser);
+            setUser(currentUser);
             setLoading(false);
+        });
+        return () => {
+            unSubscribe();
         }
-    }, []);
+    }, [])
 
-    const login = async (credentials) => {
-        try {
-            const response = await axios.post('http://localhost:5000/login', credentials);
-            const tokenResponse = await axios.post('http://localhost:5000/jwt', { email: credentials.email });
-            localStorage.setItem('token', tokenResponse.data.token);
-            setUser(response.data.user);
-            // history.push('/dashboard');
-        } catch (error) {
-            console.error('Error logging in', error);
-        }
-    };
 
-    const register = async (userInfo) => {
-        try {
-            const user = await axios.post('http://localhost:5000/users', userInfo);
-            console.log(user.data)
-            if (user.data.insertedId === null) {
-                toast.error(user.data.message)
-            }
-            if (user.data.insertedId) {
-                // show success popup
-                toast.success('Account created Successfully!')
-            }
-            const tokenResponse = await axios.post('http://localhost:5000/jwt', { email: userInfo.email });
-            localStorage.setItem('token', tokenResponse.data.token);
-            setUser(userInfo); // Assuming your register endpoint returns user info
-            // history.push('/dashboard');
-        } catch (error) {
-            console.error('Error registering', error);
-            toast.error('Provide Value Correctly!')
-        }
-    };
-
-    const logout = () => {
-        localStorage.removeItem('token');
-        setUser(null);
-        // history.push('/login');
+    const authInfo = {
+        user,
+        loading,
+        createUser,
+        logOut,
+        login,
+        updateInformation,
+        loginWithGoogle,
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+        <AuthContext.Provider value={authInfo}>
             {children}
         </AuthContext.Provider>
     );
 };
+
+AuthProvider.propTypes = {
+    children: PropTypes.node
+}
 
 export default AuthProvider;

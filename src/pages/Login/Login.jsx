@@ -36,7 +36,7 @@ const Login = () => {
                     <button type="submit" className="block w-full p-3 text-center rounded-sm bg-[#FF720F] text-white text-lg">Login</button>
                 </form>
                 <p className="text-lg font-normal text-center sm:px-6 text-black dark:text-white">Already have an account?
-                    <Link to='/' className="underline ml-2 font-semibold text-[#FF720F]">Registration</Link>
+                    <Link to='/registration' className="underline ml-2 font-semibold text-[#FF720F]">Registration</Link>
                 </p>
             </div>
         </div>
