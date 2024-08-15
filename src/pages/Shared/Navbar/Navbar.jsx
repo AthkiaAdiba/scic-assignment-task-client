@@ -14,13 +14,13 @@ const Navbar = () => {
     </>
 
     // Log out
-    // const handleLogOut = () => {
-    //     logOut()
-    //         .then(() => {
-    //             // console.log('logged out successfully')
-    //         })
-    //         .catch()
-    // }
+    const handleLogOut = () => {
+        logOut()
+            .then(() => {
+                // console.log('logged out successfully')
+            })
+            .catch()
+    }
 
     return (
         <div>
@@ -54,9 +54,14 @@ const Navbar = () => {
                         {navLinks}
                     </ul>
                 </div>
-                <div className="navbar-end">
-                <Link to='/login' className="btn mr-5 w-14 lg:w-20 bg-[#FF720F] text-white border-none text-xl">Login</Link>
-                </div>
+                {user ? <div className="navbar-end">
+                    <Link onClick={handleLogOut} className="btn mr-5 w-14 lg:w-20 bg-[#BF964A] text-white border-none text-xl">LogOut</Link>
+                </div> :
+                    <div className="navbar-end">
+                        <Link to='/login' className="btn mr-5 w-14 lg:w-20 bg-[#BF964A] text-white border-none text-xl">Login</Link>
+                    </div>
+
+                }
             </div>
         </div>
     );
